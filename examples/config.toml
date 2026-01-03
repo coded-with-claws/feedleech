@@ -1,0 +1,5 @@
+[feeds]
+feeds_url = [
+"https://domain1/feed/atom?",
+"https://domain2/feed/atom?"
+]

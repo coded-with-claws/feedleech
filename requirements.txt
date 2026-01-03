@@ -1,0 +1,4 @@
+feedparser
+tomli-w
+yt-dlp
+
