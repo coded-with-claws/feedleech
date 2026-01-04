@@ -10,22 +10,26 @@ import os
 import pickle
 import yt_dlp
 
+# global scope variables
 CONFIG_FILE_NAME = "config.toml"
 DB_FILE_NAME = "feedleech_db.toml"
 LEECH_DIR = "leech"
 ATTR_LAST_LEECH = "last_leech"
 
 def main():
+    # initialize
     db_data = {}
     feed_data = {}
     print("feedleech initializing...")
-    os.makedirs(LEECH_DIR, exist_ok=True)
     # load config
     conf = config_load()
+    LEECH_DIR = conf["general"]["leech_dir"]
     feeds_urls = conf["feeds"]["feeds_url"]
     if not feeds_urls:
         print(f"no URLs found in configuration file {CONFIG_FILE_NAME}")
     print(f"feed URLs: {feeds_urls}")
+    # create leech directory (if doesn't already exists)
+    os.makedirs(LEECH_DIR, exist_ok=True)
     # create / open db
     db_data, is_db_created = db_create_load()
     if not is_db_created:
@@ -106,6 +110,9 @@ def leech_new_entries(feed_data, db_data):
     leech_new_entries_res = True
     is_new_entries = False
     for u in db_data:
+        # ignore urls being in database but not into configured feed urls
+        if u not in feed_data:
+            continue
         last_leech_db = db_data[u][ATTR_LAST_LEECH]
         last_leech_feed = feed_data[u].entries[0]["id"]
         print(f"feed {u}, comparing db last leech {last_leech_db} with feed last leech {last_leech_feed}")
@@ -157,12 +164,16 @@ def leech_entry_yt(url):
 
     ydl_opts = {
         'paths': yt_paths,
-        'format': 'm4a/bestaudio/best',
+        #'format': 'm4a/bestaudio/best',
+        'format': 'bestvideo+bestaudio/best',
+        #'merge_output_format': 'mp4',
+        'writethumbnail': True,
+        'writeinfojson': True,
         # See help(yt_dlp.postprocessor) for a list of available Postprocessors and their arguments
-        'postprocessors': [{  # Extract audio using ffmpeg
-            'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'm4a',
-        }]
+        #'postprocessors': [{  # Extract audio using ffmpeg
+        #    'key': 'FFmpegExtractAudio',
+        #    'preferredcodec': 'm4a',
+        #}]
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -174,7 +185,8 @@ def leech_entry_yt(url):
         except yt_dlp.utils.YoutubeDLError as e:
             #print(f"yt_dlp error {e}")
             yt_dlp_res = False
-        except(Exception):
+        except Exception as e:
+            #print(f"yt_dlp error {e}")
             yt_dlp_res = False
     return yt_dlp_res
 

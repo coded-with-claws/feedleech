@@ -1,7 +1,7 @@
 # feedleech
 
 Auto-leech links from feeds.
-Only ATOM 1.0 feeds supported.
+Only ATOM 1.0 feeds tested (all feeds supported by lib `feedparser` should be ok).
 
 Feeds URL must be filled into `config.toml` configuration file.
 

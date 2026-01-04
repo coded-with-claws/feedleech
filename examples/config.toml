@@ -1,3 +1,6 @@
+[general]
+leech_dir = "./leech"
+
 [feeds]
 feeds_url = [
 "https://domain1/feed/atom?",
