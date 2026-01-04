@@ -122,9 +122,9 @@ def leech_new_entries(feed_data, db_data):
             new_entries = get_new_entries(feed_data, u, last_leech_db)
             # leech new entries
             for n in new_entries:
-                leech_res = leech_entry(u, n)
+                leech_res, leeched_file = leech_entry(u, n)
                 if leech_res:
-                    update_last_leech(feed_data, db_data, u, n)
+                    update_last_leech(feed_data, db_data, u, n, leeched_file)
                 else:
                     print(f"FAILED leeching {n['link']}")
                     leech_new_entries_res = False
@@ -146,17 +146,19 @@ def get_new_entries(feed_data, feed_url, last_leech_db):
             entries_to_leech.append(e)
     return entries_to_leech
 
+# Return (result, filename)
 def leech_entry(url, entry):
     leech_res = False
     link = entry["link"]
     print(f"leeching {entry['title']} {link}")
     if ("youtube.com" in link or
         "youtu.be" in link):
-        leech_res = leech_entry_yt(link)
+        leech_res, leeched_file = leech_entry_yt(link)
     else:
         print(f"no extractor found for {link}")
-    return leech_res
+    return leech_res, leeched_file
 
+# Return (result, filename)
 def leech_entry_yt(url):
     yt_dlp_res = True
     yt_paths = {}
@@ -178,6 +180,11 @@ def leech_entry_yt(url):
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         try:
+            # get filename
+            info_dict = ydl.extract_info(url, download=False)
+            output_filename = ydl.prepare_filename(info_dict)
+
+            # download
             error_code = ydl.download(url)
             #print(f"yt_dlp error_code {error_code}")
             if error_code != 0:
@@ -188,12 +195,15 @@ def leech_entry_yt(url):
         except Exception as e:
             #print(f"yt_dlp error {e}")
             yt_dlp_res = False
-    return yt_dlp_res
+    return yt_dlp_res, output_filename
 
-def update_last_leech(feed_data, db_data, url, entry):
+def update_last_leech(feed_data, db_data, url, entry, filename):
+    # update id of last leech
     entry_id = entry["id"]
     print(f"last entry for {url}: {entry_id}")
     db_data[url][ATTR_LAST_LEECH] = entry_id
+    # trace id with filename
+    db_data[url][entry_id] = filename
 
 def db_update(db_data):
     #print(f"data to dump into db:\n{db_data}")
