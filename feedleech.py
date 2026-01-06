@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 # vim: set syntax=python:
 
 #TODO
@@ -85,7 +87,7 @@ def get_feeds(urls: list, db_data):
 
 def get_feed(url: str):
     feed_content = feedparser.parse(url)
-    if feed_content["status"] == 200:
+    if "status" in feed_content and feed_content["status"] == 200:
         return feed_content
     else:
         return None
