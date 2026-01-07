@@ -14,12 +14,12 @@ import pickle
 import yt_dlp
 
 # global scope variables
-DB_FILE_NAME = "feedleech_db.toml"
+DB_FILE_NAME = None
 LEECH_DIR = None
 ATTR_LAST_LEECH = "last_leech"
 
 def main():
-    global LEECH_DIR
+    global LEECH_DIR, DB_FILE_NAME
 
     # handle arguments
     argparser = argparse.ArgumentParser()
@@ -50,6 +50,7 @@ def main():
     if not feeds_urls:
         print(f"exit: no URLs found in configuration file {config_file}")
         return -1
+    DB_FILE_NAME = str(config_file).replace(".toml", ".db")
     print(f"leech directory: {LEECH_DIR}")
     print(f"feed URLs: {feeds_urls}")
 
@@ -86,6 +87,9 @@ def main():
 
 def config_load(config_filename):
     conf_handle = None
+    if not str(config_filename).lower().endswith(".toml"):
+        print(f"{config_filename} doesn't end with .toml extension")
+        return conf_handle
     with open(config_filename, "rb") as f:
         try:
             conf_handle = tomllib.load(f)
