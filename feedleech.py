@@ -15,10 +15,12 @@ import yt_dlp
 # global scope variables
 CONFIG_FILE_NAME = "config.toml"
 DB_FILE_NAME = "feedleech_db.toml"
-LEECH_DIR = "leech"
+LEECH_DIR = None
 ATTR_LAST_LEECH = "last_leech"
 
 def main():
+    global LEECH_DIR
+
     # initialize
     db_data = {}
     feed_data = {}
@@ -27,8 +29,11 @@ def main():
     conf = config_load()
     LEECH_DIR = conf["general"]["leech_dir"]
     feeds_urls = conf["feeds"]["feeds_url"]
+    if not LEECH_DIR:
+        print(f"no leech directory found in configuration file {CONFIG_FILE_NAME}")
     if not feeds_urls:
         print(f"no URLs found in configuration file {CONFIG_FILE_NAME}")
+    print(f"leech directory: {LEECH_DIR}")
     print(f"feed URLs: {feeds_urls}")
     # create leech directory (if doesn't already exists)
     os.makedirs(LEECH_DIR, exist_ok=True)
@@ -90,6 +95,7 @@ def get_feed(url: str):
     if "status" in feed_content and feed_content["status"] == 200:
         return feed_content
     else:
+        print(f"Couldn't get feed {url}")
         return None
 
 #def init_last_entry(db_data):
@@ -162,9 +168,12 @@ def leech_entry(url, entry):
 
 # Return (result, filename)
 def leech_entry_yt(url):
+    print(f"DEBUG: {LEECH_DIR}")
+
     yt_dlp_res = True
     yt_paths = {}
     yt_paths["home"] = LEECH_DIR
+    output_filename = None
 
     ydl_opts = {
         'paths': yt_paths,
