@@ -5,6 +5,7 @@
 #TODO
 # - lib newspaper3k to leech articles (https://pypi.org/project/newspaper3k/)
 
+import argparse
 import feedparser
 import tomllib
 import tomli_w
@@ -13,7 +14,6 @@ import pickle
 import yt_dlp
 
 # global scope variables
-CONFIG_FILE_NAME = "config.toml"
 DB_FILE_NAME = "feedleech_db.toml"
 LEECH_DIR = None
 ATTR_LAST_LEECH = "last_leech"
@@ -21,22 +21,41 @@ ATTR_LAST_LEECH = "last_leech"
 def main():
     global LEECH_DIR
 
+    # handle arguments
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument("config_file", help="config file in TOML format")
+    args = argparser.parse_args()
+    config_file = args.config_file
+    print(f"config file: {config_file}")
+
     # initialize
     db_data = {}
     feed_data = {}
     print("feedleech initializing...")
+
     # load config
-    conf = config_load()
-    LEECH_DIR = conf["general"]["leech_dir"]
-    feeds_urls = conf["feeds"]["feeds_url"]
+    conf = config_load(config_file)
+    if not conf:
+        print(f"exit: invalid configuration file")
+        return -1
+    try:
+        LEECH_DIR = conf["general"]["leech_dir"]
+        feeds_urls = conf["feeds"]["feeds_url"]
+    except KeyError as e:
+        print(f"exit: missing parameters into configuration file")
+        return -1
     if not LEECH_DIR:
-        print(f"no leech directory found in configuration file {CONFIG_FILE_NAME}")
+        print(f"exit: no leech directory found in configuration file")
+        return -1
     if not feeds_urls:
-        print(f"no URLs found in configuration file {CONFIG_FILE_NAME}")
+        print(f"exit: no URLs found in configuration file {config_file}")
+        return -1
     print(f"leech directory: {LEECH_DIR}")
     print(f"feed URLs: {feeds_urls}")
+
     # create leech directory (if doesn't already exists)
     os.makedirs(LEECH_DIR, exist_ok=True)
+
     # create / open db
     db_data, is_db_created = db_create_load()
     if not is_db_created:
@@ -48,22 +67,30 @@ def main():
         #print(f"{db_data}")
     else:
         db_data = {}
+
     # inject configured urls into db (if not already there)
     init_feedurls_db(feeds_urls, db_data)
+
     # get feeds
+    print("getting feeds...")
     get_feeds(feeds_urls, feed_data)
+
     # leech new items
     leech_res = leech_new_entries(feed_data, db_data)
     if not leech_res:
         # do not update db
         return -1
+
     # update db
     db_update(db_data)
 
-def config_load():
+def config_load(config_filename):
     conf_handle = None
-    with open(CONFIG_FILE_NAME, "rb") as f:
-        conf_handle = tomllib.load(f)
+    with open(config_filename, "rb") as f:
+        try:
+            conf_handle = tomllib.load(f)
+        except tomllib.TOMLDecodeError as e:
+            print(f"{config_filename} doesn't seem to be in TOML format")
     return conf_handle
 
 def db_create_load():

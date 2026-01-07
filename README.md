@@ -3,7 +3,8 @@
 Auto-leech links from feeds.
 Only ATOM 1.0 feeds tested (all feeds supported by lib `feedparser` should be ok).
 
-Feeds URL must be filled into `config.toml` configuration file.
+Feeds URLs must be filled into a configuration file in TOML format (see `examples/config.toml`).
+This configuration file must be given as argument to `feedleech.py`.
 
 A `feedleech_db.toml` file will be created by the script to memorize the last items it downloaded.
 

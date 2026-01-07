@@ -1,0 +1,6 @@
+[general]
+leech_dir = "./leech"
+
+[feeds]
+feeds_url = [
+]
