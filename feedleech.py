@@ -188,6 +188,7 @@ def get_new_entries(feed_data, feed_url, last_leech_db):
 # Return (result, filename)
 def leech_entry(url, entry):
     leech_res = False
+    leeched_file = None
     link = entry["link"]
     print(f"leeching {entry['title']} {link}")
     if ("youtube.com" in link or
