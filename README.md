@@ -11,6 +11,7 @@ A `.db` file will be created by the script to memorize the last items it downloa
 ## Pre-requisite
 
 - python3
+- ffmpeg
 - dependencies installed from requirements.txt
 
 ## Tests
