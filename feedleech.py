@@ -79,11 +79,11 @@ def main():
     # leech new items
     leech_res = leech_new_entries(feed_data, db_data)
     if not leech_res:
-        # do not update db
+        ### # do not update db
         return -1
 
     # update db
-    db_update(db_data)
+    #db_update(db_data)
 
 def config_load(config_filename):
     conf_handle = None
@@ -200,7 +200,7 @@ def leech_entry(url, entry):
 
 # Return (result, filename)
 def leech_entry_yt(url):
-    print(f"DEBUG: {LEECH_DIR}")
+    #print(f"DEBUG: {LEECH_DIR}")
 
     yt_dlp_res = True
     yt_paths = {}
@@ -247,6 +247,7 @@ def update_last_leech(feed_data, db_data, url, entry, filename):
     db_data[url][ATTR_LAST_LEECH] = entry_id
     # trace id with filename
     db_data[url][entry_id] = filename
+    db_update(db_data)
 
 def db_update(db_data):
     #print(f"data to dump into db:\n{db_data}")
