@@ -239,7 +239,11 @@ def leech_entry_yt(url):
                 yt_dlp_res = False
         except yt_dlp.utils.YoutubeDLError as e:
             #print(f"yt_dlp error {e}")
-            yt_dlp_res = False
+            if "Video unavailable" in str(e):
+                print(f"Can't leech {url}: video unavailable: deleted / geo-fencing / ... => LEECH IGNORED")
+                output_filename = "UNAVAILABLE"
+            else:
+                yt_dlp_res = False
         except Exception as e:
             #print(f"yt_dlp error {e}")
             yt_dlp_res = False
