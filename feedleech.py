@@ -12,6 +12,7 @@ import tomli_w
 import os
 import pickle
 import yt_dlp
+import time
 
 # global scope variables
 DB_FILE_NAME = None
@@ -196,6 +197,8 @@ def leech_entry(url, entry):
     if ("youtube.com" in link or
         "youtu.be" in link):
         leech_res, leeched_file = leech_entry_yt(link)
+        # delay to avoid being blocked by youtube
+        time.sleep(5)
     else:
         print(f"no extractor found for {link}")
     return leech_res, leeched_file
