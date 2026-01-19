@@ -132,13 +132,6 @@ def get_feed(url: str):
         print(f"Couldn't get feed {url}")
         return None
 
-#def init_last_entry(db_data):
-#    for k in db_data:
-#        try:
-#            last_entry = db_data[k][ATTR_LAST_LEECH]
-#        except(KeyError):
-#            db_data[k][ATTR_LAST_LEECH] = None
-
 def init_feedurls_db(urls, db_data):
     for u in urls:
         try:
@@ -166,11 +159,12 @@ def leech_new_entries(feed_data, db_data):
             for n in new_entries:
                 leech_res, leeched_file = leech_entry(u, n)
                 if leech_res:
-                    update_last_leech(feed_data, db_data, u, n, leeched_file)
+                    update_entry_leech(feed_data, db_data, u, n, leeched_file)
                 else:
                     print(f"FAILED leeching {n['link']}")
                     leech_new_entries_res = False
                     break
+            update_last_leech(feed_data, db_data, u, last_leech_feed)
         else:
             print("nothing new found into feed")
     return leech_new_entries_res
@@ -249,12 +243,15 @@ def leech_entry_yt(url):
             yt_dlp_res = False
     return yt_dlp_res, output_filename
 
-def update_last_leech(feed_data, db_data, url, entry, filename):
-    # update id of last leech
-    entry_id = entry["id"]
+# update id of last leech
+def update_last_leech(feed_data, db_data, url, entry_id):
     print(f"last entry for {url}: {entry_id}")
     db_data[url][ATTR_LAST_LEECH] = entry_id
-    # trace id with filename
+
+# trace id with filename
+def update_entry_leech(feed_data, db_data, url, entry, filename):
+    entry_id = entry["id"]
+    print(f"entry {entry_id}: file {filename}")
     db_data[url][entry_id] = filename
 
 def db_update(db_data):
