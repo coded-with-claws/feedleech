@@ -191,7 +191,7 @@ def leech_entry(url, entry):
     leech_res = False
     leeched_file = None
     link = entry["link"]
-    article_pattern = re.compile(r"[\w\-]+/?")
+    article_pattern = re.compile(r"/[\w\-]+/?")
     print(f"leeching {entry['title']} {link}")
     if ("youtube.com" in link or
         "youtu.be" in link):
