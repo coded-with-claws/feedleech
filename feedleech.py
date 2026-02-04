@@ -7,6 +7,8 @@
 
 import argparse
 import feedparser
+import newspaper
+import pandas
 import tomllib
 import tomli_w
 import os
@@ -14,6 +16,7 @@ import pickle
 import requests
 import yt_dlp
 import time
+import re
 
 # global scope variables
 DB_FILE_NAME = None
@@ -188,6 +191,7 @@ def leech_entry(url, entry):
     leech_res = False
     leeched_file = None
     link = entry["link"]
+    article_pattern = re.compile(r"[\w\-]+/?")
     print(f"leeching {entry['title']} {link}")
     if ("youtube.com" in link or
         "youtu.be" in link):
@@ -197,6 +201,10 @@ def leech_entry(url, entry):
     elif (link.endswith(".pdf") or
           link.endswith(".docx")):
         leech_res, leeched_file = leech_entry_ddl(link)
+    elif(link.endswith(".html") or
+         link.endswith(".htm") or
+         article_pattern.search(link)):
+        leech_res, leeched_file = leech_entry_article(link, entry["id"])
     else:
         print(f"no extractor found for {link}")
     return leech_res, leeched_file
@@ -268,6 +276,31 @@ def leech_entry_ddl(url):
         f.write(response.content)
 
     return leech_res, output_filename
+
+def leech_entry_article(url, entry_id):
+    article_res = True
+    output_filename = None
+    article_data = []
+
+    if str(entry_id) == "":
+        return False, None
+    entry_id_lastpart = entry_id.rsplit("/", 1)[-1]
+
+    article = newspaper.article(url)
+    article.download()
+    article.parse()
+    article_data.append({
+        "url": article.url,
+        "authors": article.authors,
+        "data": article.publish_date,
+        "content": article.text,
+        })
+
+    output_filename = f"{entry_id_lastpart}.xlsx"
+    output_fullpath = f"{LEECH_DIR}/{output_filename}"
+    pandas.DataFrame(article_data).to_excel(output_fullpath, index=False)
+
+    return article_res, output_filename
 
 # update id of last leech
 def update_last_leech(feed_data, db_data, url, entry_id):

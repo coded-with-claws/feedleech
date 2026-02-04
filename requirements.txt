@@ -1,4 +1,7 @@
 feedparser
+newspaper4k
+openpyxl
+pandas
 requests
 tomli-w
 yt-dlp
