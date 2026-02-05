@@ -11,6 +11,7 @@ import tomllib
 import tomli_w
 import os
 import pickle
+import requests
 import yt_dlp
 import time
 
@@ -193,6 +194,9 @@ def leech_entry(url, entry):
         leech_res, leeched_file = leech_entry_yt(link)
         # delay to avoid being blocked by youtube
         time.sleep(5)
+    elif (link.endswith(".pdf") or
+          link.endswith(".docx")):
+        leech_res, leeched_file = leech_entry_ddl(link)
     else:
         print(f"no extractor found for {link}")
     return leech_res, leeched_file
@@ -242,6 +246,28 @@ def leech_entry_yt(url):
             #print(f"yt_dlp error {e}")
             yt_dlp_res = False
     return yt_dlp_res, output_filename
+
+# Return (result, filename)
+def leech_entry_ddl(url):
+    leech_res = True
+    output_filename = None
+    headers = {"Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+               "Accept-Language": "fr,fr-FR;q=0.9,en-US;q=0.8,en;q=0.7",
+               "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:147.0) Gecko/20100101 Firefox/147.0",
+               "DNT": "1"}
+
+    if ("/" in url):
+        file_in_url = url.rsplit("/", 1)[-1]
+    else:
+        return False
+
+    response = requests.get(url, headers=headers)
+    output_filename = f"{LEECH_DIR}/{file_in_url}"
+
+    with open(output_filename, "wb") as f:
+        f.write(response.content)
+
+    return leech_res, output_filename
 
 # update id of last leech
 def update_last_leech(feed_data, db_data, url, entry_id):
