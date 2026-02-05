@@ -284,7 +284,7 @@ def leech_entry_article(url, entry_id):
 
     if str(entry_id) == "":
         return False, None
-    entry_id_lastpart = entry_id.rsplit("/", 1)[-1]
+    entry_id_filenamecompat = entry_id.replace(":", "").replace("/", "-").replace(".", "-")
 
     article = newspaper.article(url)
     article.download()
@@ -296,7 +296,7 @@ def leech_entry_article(url, entry_id):
         "content": article.text,
         })
 
-    output_filename = f"{entry_id_lastpart}.xlsx"
+    output_filename = f"{entry_id_filenamecompat}.xlsx"
     output_fullpath = f"{LEECH_DIR}/{output_filename}"
     pandas.DataFrame(article_data).to_excel(output_fullpath, index=False)
 
