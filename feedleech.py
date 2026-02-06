@@ -7,8 +7,6 @@
 
 import argparse
 import feedparser
-import newspaper
-import pandas
 import tomllib
 import tomli_w
 import os
@@ -17,6 +15,7 @@ import requests
 import yt_dlp
 import time
 import re
+from weasyprint import HTML
 
 # global scope variables
 DB_FILE_NAME = None
@@ -277,6 +276,7 @@ def leech_entry_ddl(url):
 
     return leech_res, output_filename
 
+# Return (result, filename)
 def leech_entry_article(url, entry_id):
     article_res = True
     output_filename = None
@@ -286,19 +286,13 @@ def leech_entry_article(url, entry_id):
         return False, None
     entry_id_filenamecompat = entry_id.replace(":", "").replace("/", "-").replace(".", "-")
 
-    article = newspaper.article(url)
-    article.download()
-    article.parse()
-    article_data.append({
-        "url": article.url,
-        "authors": article.authors,
-        "data": article.publish_date,
-        "content": article.text,
-        })
-
-    output_filename = f"{entry_id_filenamecompat}.xlsx"
+    output_filename = f"{entry_id_filenamecompat}.pdf"
     output_fullpath = f"{LEECH_DIR}/{output_filename}"
-    pandas.DataFrame(article_data).to_excel(output_fullpath, index=False)
+    try:
+        HTML(url).write_pdf(output_fullpath)
+    except Exception as e:
+        print(f"Error processing {base_url}: {str(e)}")
+        article_res = False
 
     return article_res, output_filename
 
