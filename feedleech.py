@@ -168,7 +168,8 @@ def leech_new_entries(feed_data, db_data):
                     print(f"[!] FAILED leeching {n['link']}")
                     leech_new_entries_res = False
                     break
-            update_last_leech(feed_data, db_data, u, last_leech_feed)
+            if(leech_new_entries_res):
+                update_last_leech(feed_data, db_data, u, last_leech_feed)
         else:
             print("[+] nothing new found into feed")
     return leech_new_entries_res
