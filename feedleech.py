@@ -218,7 +218,7 @@ def leech_entry_yt(url):
     yt_dlp_res = True
     yt_paths = {}
     yt_paths["home"] = LEECH_DIR
-    output_filename = None
+    output_fullpath = None
 
     ydl_opts = {
         'paths': yt_paths,
@@ -238,7 +238,11 @@ def leech_entry_yt(url):
         try:
             # get filename
             info_dict = ydl.extract_info(url, download=False)
-            output_filename = ydl.prepare_filename(info_dict)
+            output_fullpath = ydl.prepare_filename(info_dict)
+
+            # skip download if already downloaded
+            if is_entry_already_leeched(output_fullpath):
+                return True, output_fullpath
 
             # download
             error_code = ydl.download(url)
@@ -249,13 +253,13 @@ def leech_entry_yt(url):
             #print(f"yt_dlp error {e}")
             if "Video unavailable" in str(e):
                 print(f"[!] Can't leech {url}: video unavailable: deleted / geo-fencing / ... => LEECH IGNORED")
-                output_filename = "UNAVAILABLE"
+                output_fullpath = "UNAVAILABLE"
             else:
                 yt_dlp_res = False
         except Exception as e:
             #print(f"yt_dlp error {e}")
             yt_dlp_res = False
-    return yt_dlp_res, output_filename
+    return yt_dlp_res, output_fullpath
 
 # Return (result, filename)
 def leech_entry_ddl(url):
@@ -273,12 +277,16 @@ def leech_entry_ddl(url):
         return False
 
     response = requests.get(url, headers=headers)
-    output_filename = f"{LEECH_DIR}/{file_in_url}"
+    output_fullpath = f"{LEECH_DIR}/{file_in_url}"
 
-    with open(output_filename, "wb") as f:
+    # skip download if already downloaded
+    if is_entry_already_leeched(output_fullpath):
+        return True, output_fullpath
+
+    with open(output_fullpath, "wb") as f:
         f.write(response.content)
 
-    return leech_res, output_filename
+    return leech_res, output_fullpath
 
 # Return (result, filename)
 def leech_entry_article(url, entry_id):
@@ -293,6 +301,11 @@ def leech_entry_article(url, entry_id):
 
     output_filename = f"{entry_id_filenamecompat}.pdf"
     output_fullpath = f"{LEECH_DIR}/{output_filename}"
+
+    # skip download if already downloaded
+    if is_entry_already_leeched(output_fullpath):
+        return True, output_filename
+
     try:
         HTML(url).write_pdf(output_fullpath)
     except Exception as e:
@@ -300,6 +313,22 @@ def leech_entry_article(url, entry_id):
         article_res = False
 
     return article_res, output_filename
+
+def is_entry_already_leeched(filepath):
+    #print(f"DEBUG: is_entry_already_leeched {filepath}")
+    res = False
+
+    try:
+        filestat = os.stat(filepath)
+        #print(f"DEBUG: {filepath} found")
+        if filestat.st_size > 0:
+            res = True
+            print(f"[!] already leeched {filepath}")
+    except FileNotFoundError:
+        res = False
+        #print(f"DEBUG: {filepath} not found")
+
+    return res
 
 # update id of last leech
 def update_last_leech(feed_data, db_data, url, entry_id):
