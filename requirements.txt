@@ -1,5 +1,6 @@
 feedparser
 requests
 tomli-w
+weasyprint
 yt-dlp
 
