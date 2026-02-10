@@ -15,7 +15,9 @@ import requests
 import yt_dlp
 import time
 import re
+from urllib.error import URLError
 from weasyprint import HTML
+
 
 # global scope variables
 DB_FILE_NAME = None
@@ -197,8 +199,6 @@ def leech_entry(url, entry):
     if ("youtube.com" in link or
         "youtu.be" in link):
         leech_res, leeched_file = leech_entry_yt(link)
-        # delay to avoid being blocked by youtube
-        time.sleep(5)
     elif (link.endswith(".pdf") or
           link.endswith(".docx")):
         leech_res, leeched_file = leech_entry_ddl(link)
@@ -243,6 +243,10 @@ def leech_entry_yt(url):
             # skip download if already downloaded
             if is_entry_already_leeched(output_fullpath):
                 return True, output_fullpath
+
+            # delay to avoid being blocked by youtube
+            # if we already downloaded from a previous entry
+            time.sleep(5)
 
             # download
             error_code = ydl.download(url)
@@ -308,8 +312,11 @@ def leech_entry_article(url, entry_id):
 
     try:
         HTML(url).write_pdf(output_fullpath)
+    except URLError as e:
+        print(f"[!] Error processing {url}: {str(e)}")
+        article_res = False
     except Exception as e:
-        print(f"[!] Error processing {base_url}: {str(e)}")
+        print(f"[!] Error processing {url}: {str(e)}")
         article_res = False
 
     return article_res, output_filename
@@ -318,6 +325,7 @@ def is_entry_already_leeched(filepath):
     #print(f"DEBUG: is_entry_already_leeched {filepath}")
     res = False
 
+    print(f"[*] checking if already leeched {filepath}")
     try:
         filestat = os.stat(filepath)
         #print(f"DEBUG: {filepath} found")
