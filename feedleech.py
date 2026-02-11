@@ -6,6 +6,7 @@
 # - lib newspaper3k to leech articles (https://pypi.org/project/newspaper3k/)
 
 import argparse
+import datetime
 import feedparser
 import tomllib
 import tomli_w
@@ -26,6 +27,8 @@ ATTR_LAST_LEECH = "last_leech"
 
 def main():
     global LEECH_DIR, DB_FILE_NAME
+
+    print(f"feedleech run - {datetime.datetime.now()}")
 
     # handle arguments
     argparser = argparse.ArgumentParser()
