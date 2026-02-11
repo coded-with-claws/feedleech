@@ -2,9 +2,6 @@
 # -*- coding: utf-8 -*-
 # vim: set syntax=python:
 
-#TODO
-# - lib newspaper3k to leech articles (https://pypi.org/project/newspaper3k/)
-
 import argparse
 import datetime
 import feedparser
@@ -12,12 +9,12 @@ import tomllib
 import tomli_w
 import os
 import pickle
-import requests
-import yt_dlp
-import time
 import re
+import requests
+import time
 from urllib.error import URLError
 from weasyprint import HTML
+import yt_dlp
 
 
 # global scope variables
