@@ -14,6 +14,11 @@ A `.db` file will be created by the script to memorize the last items it downloa
 - ffmpeg
 - dependencies installed from requirements.txt
 
+## Extractors
+- docs (.pdf, ...): direct download
+- youtube links: yt-dlp
+- webpages: weasyprint
+
 ## Tests
 
 You can do some tests hosting a feed (like the ones in `examples` directory) with `python3 -m http.server 8080`.
