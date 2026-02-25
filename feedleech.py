@@ -174,6 +174,7 @@ def leech_new_entries(feed_data, db_data):
                 update_last_leech(feed_data, db_data, u, last_leech_feed)
         else:
             print("[+] nothing new found into feed")
+            leech_new_entries_res = False
     return leech_new_entries_res
 
 def get_new_entries(feed_data, feed_url, last_leech_db):
