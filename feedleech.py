@@ -198,7 +198,8 @@ def leech_entry(url, entry):
     article_pattern = re.compile(r"/[\w\-]+/?")
     print(f"[*] leeching {entry['title']} from {link}")
     if ("youtube.com" in link or
-        "youtu.be" in link):
+        "youtu.be" in link or
+        "www.arte.tv" in link):
         leech_res, leeched_file = leech_entry_yt(link)
     elif (link.endswith(".pdf") or
           link.endswith(".docx")):
