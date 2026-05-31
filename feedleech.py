@@ -3,6 +3,7 @@
 # vim: set syntax=python:
 
 import argparse
+import ctypes
 import datetime
 import feedparser
 import tomllib
@@ -11,6 +12,8 @@ import os
 import pickle
 import re
 import requests
+import sys
+import threading
 import time
 from urllib.error import URLError
 from weasyprint import HTML
@@ -312,14 +315,25 @@ def leech_entry_article(url, entry_id):
     if is_entry_already_leeched(output_fullpath):
         return True, output_filename
 
-    try:
-        HTML(url).write_pdf(output_fullpath)
-    except URLError as e:
-        print(f"[!] Error processing {url}: {str(e)}")
+    def inner_worker():
+        try:
+            HTML(url).write_pdf(output_fullpath)
+        except URLError as e:
+            print(f"[!] Error processing {url}: {str(e)}")
+            article_res = False
+        except Exception as e:
+            print(f"[!] Error processing {url}: {str(e)}")
+            article_res = False
+
+    thread = threading.Thread(target=inner_worker)
+    delay_html_to_pdf = 20
+    thread.daemon = True
+    thread.start()
+    thread.join(delay_html_to_pdf)
+    if thread.is_alive():
+        print(f"[!] HTML to PDF conversion taking too much time, aborting")
         article_res = False
-    except Exception as e:
-        print(f"[!] Error processing {url}: {str(e)}")
-        article_res = False
+        _kill_thread(thread)
 
     return article_res, output_filename
 
@@ -357,6 +371,14 @@ def db_update(db_data):
         tomli_w.dump(db_data, f)
     f.close()
     print("[+] db saved")
+
+def _kill_thread(thread):
+    # heavily based on http://stackoverflow.com/a/15274929/2281274
+    # by Johan Dahlin
+    # rewrited to avoid licence uncertainty
+    SE = ctypes.py_object(SystemExit)
+    tr = ctypes.c_long(thread.ident)
+    res = ctypes.pythonapi.PyThreadState_SetAsyncExc(tr, SE)
 
 if __name__ == "__main__":
     main()
